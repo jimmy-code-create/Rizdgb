@@ -23,7 +23,7 @@ backend/    → Express API server → deploy to Render
 ### 2. Deploy Backend to Render
 - Create a new **Web Service** on render.com
 - Point to your GitHub repo, **Root Directory**: `backend`
-- Build Command: `npm install && npm run build`
+- Build Command: `npm install`
 - Start Command: `npm start`
 - Environment Variables (set in Render dashboard):
   - `DATABASE_URL` — your PostgreSQL connection string
