@@ -3,6 +3,7 @@ import cors from "cors";
 import pinoHttp from "pino-http";
 import session from "express-session";
 import cookieParser from "cookie-parser";
+import connectPg from "connect-pg-simple";
 import router from "./routes/index.js";
 import { logger } from "./lib/logger.js";
 import path from "path";
