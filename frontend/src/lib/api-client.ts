@@ -368,3 +368,180 @@ export function useSendTypingIndicator() {
       apiFetch<{ ok: boolean }>(`/api/dm/conversations/${conversationId}/typing`, { method: "POST" }),
   });
 }
+
+export function useGetMyProfile(_opts?: unknown) {
+  return useQuery({
+    queryKey: ["/api/users/me"],
+    queryFn: () => apiFetch<UserProfile>("/api/users/me"),
+  });
+}
+
+export function useUpdateMyProfile(_opts?: unknown) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: Partial<UserProfile> & { password?: string; currentPassword?: string }) =>
+      apiFetch<UserProfile>("/api/users/me", { method: "PATCH", body: JSON.stringify(data) }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["/api/users/me"] });
+    },
+  });
+}
+
+export function useGetUserProfile(userId: string | undefined, _opts?: unknown) {
+  return useQuery({
+    queryKey: ["/api/users", userId],
+    queryFn: () => apiFetch<UserProfile>(`/api/users/${userId}`),
+    enabled: !!userId,
+  });
+}
+
+export function useGetUserPosts(userId: string | undefined, _opts?: unknown) {
+  return useQuery({
+    queryKey: ["/api/users", userId, "posts"],
+    queryFn: () => apiFetch<{ posts: Post[] }>(`/api/users/${userId}/posts`).then((r) => r.posts),
+    enabled: !!userId,
+  });
+}
+
+export function useGetUserBadges(userId: string | undefined, _opts?: unknown) {
+  return useQuery({
+    queryKey: ["/api/users", userId, "badges"],
+    queryFn: () => apiFetch<{ badges: Badge[] }>(`/api/users/${userId}/badges`).then((r) => r.badges),
+    enabled: !!userId,
+  });
+}
+
+export function useFollowUser(_opts?: unknown) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (userId: string) =>
+      apiFetch<{ ok: boolean }>(`/api/users/${userId}/follow`, { method: "POST" }),
+    onSuccess: (_d, userId) => {
+      qc.invalidateQueries({ queryKey: ["/api/users", userId] });
+      qc.invalidateQueries({ queryKey: ["/api/users/me"] });
+    },
+  });
+}
+
+export function useUnfollowUser(_opts?: unknown) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (userId: string) =>
+      apiFetch<{ ok: boolean }>(`/api/users/${userId}/unfollow`, { method: "POST" }),
+    onSuccess: (_d, userId) => {
+      qc.invalidateQueries({ queryKey: ["/api/users", userId] });
+      qc.invalidateQueries({ queryKey: ["/api/users/me"] });
+    },
+  });
+}
+
+export interface ServerMessage {
+  id: number;
+  channelId: number;
+  authorId: string;
+  content: string;
+  createdAt: string;
+  author: { id: string; username: string; displayName: string; avatarUrl?: string | null } | null;
+  reactions: { emoji: string; count: number; users: string[]; hasReacted: boolean }[];
+}
+
+export function useGetMyServers(_opts?: unknown) {
+  return useQuery({
+    queryKey: ["/api/servers/me"],
+    queryFn: () => apiFetch<{ servers: Server[] }>("/api/servers/me").then((r) => r.servers),
+  });
+}
+
+export function useListServers(_opts?: unknown) {
+  return useQuery({
+    queryKey: ["/api/servers"],
+    queryFn: () => apiFetch<{ servers: Server[] }>("/api/servers").then((r) => r.servers),
+  });
+}
+
+export function useCreateServer(_opts?: unknown) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { name: string; description?: string; iconUrl?: string; tags?: string[] }) =>
+      apiFetch<Server>("/api/servers", { method: "POST", body: JSON.stringify(data) }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["/api/servers"] });
+      qc.invalidateQueries({ queryKey: ["/api/servers/me"] });
+    },
+  });
+}
+
+export function useJoinServer(_opts?: unknown) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (serverId: number) =>
+      apiFetch<{ ok: boolean }>(`/api/servers/${serverId}/join`, { method: "POST" }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["/api/servers"] });
+      qc.invalidateQueries({ queryKey: ["/api/servers/me"] });
+    },
+  });
+}
+
+export function useLeaveServer(_opts?: unknown) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (serverId: number) =>
+      apiFetch<{ ok: boolean }>(`/api/servers/${serverId}/leave`, { method: "POST" }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["/api/servers"] });
+      qc.invalidateQueries({ queryKey: ["/api/servers/me"] });
+    },
+  });
+}
+
+export function useGetServer(serverId: number, _opts?: unknown) {
+  return useQuery({
+    queryKey: ["/api/servers", serverId],
+    queryFn: () => apiFetch<Server>(`/api/servers/${serverId}`),
+    enabled: !!serverId,
+  });
+}
+
+export function useGetServerChannels(serverId: number, _opts?: unknown) {
+  return useQuery({
+    queryKey: ["/api/servers", serverId, "channels"],
+    queryFn: () => apiFetch<{ channels: Channel[] }>(`/api/servers/${serverId}/channels`).then((r) => r.channels),
+    enabled: !!serverId,
+  });
+}
+
+export function useGetChannelMessages(serverId: number, channelId: number, _opts?: unknown) {
+  return useQuery({
+    queryKey: ["/api/servers", serverId, "channels", channelId, "messages"],
+    queryFn: () =>
+      apiFetch<{ messages: ServerMessage[] }>(`/api/servers/${serverId}/channels/${channelId}/messages`).then((r) => r.messages),
+    enabled: !!serverId && !!channelId,
+    refetchInterval: 3000,
+  });
+}
+
+export function useSendChannelMessage(_opts?: unknown) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ serverId, channelId, content }: { serverId: number; channelId: number; content: string }) =>
+      apiFetch<ServerMessage>(`/api/servers/${serverId}/channels/${channelId}/messages`, {
+        method: "POST",
+        body: JSON.stringify({ content }),
+      }),
+    onSuccess: (_d, v) => {
+      qc.invalidateQueries({ queryKey: ["/api/servers", v.serverId, "channels", v.channelId, "messages"] });
+    },
+  });
+}
+
+export function useCreateChannel(_opts?: unknown) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ serverId, name, type }: { serverId: number; name: string; type?: string }) =>
+      apiFetch<Channel>(`/api/servers/${serverId}/channels`, { method: "POST", body: JSON.stringify({ name, type }) }),
+    onSuccess: (_d, v) => {
+      qc.invalidateQueries({ queryKey: ["/api/servers", v.serverId, "channels"] });
+    },
+  });
+}
