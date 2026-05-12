@@ -16,6 +16,7 @@ declare module "express-session" {
 
 const app: Express = express();
 const PgSession = connectPg(session);
+
 app.use(
   pinoHttp({
     logger,
@@ -38,6 +39,11 @@ app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(cookieParser(process.env["SESSION_SECRET"] ?? "rizz-secret-2024"));
 app.use(
   session({
+    store: new PgSession({
+      conString: process.env["DATABASE_URL"],
+      tableName: "sessions",
+      createTableIfMissing: true,
+    }),
     secret: process.env["SESSION_SECRET"] ?? "rizz-secret-2024",
     resave: false,
     saveUninitialized: false,
