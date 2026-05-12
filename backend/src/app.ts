@@ -15,7 +15,7 @@ declare module "express-session" {
 }
 
 const app: Express = express();
-
+const PgSession = connectPg(session);
 app.use(
   pinoHttp({
     logger,
