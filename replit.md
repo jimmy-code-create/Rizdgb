@@ -1,45 +1,70 @@
-# [Project name]
+# Rizz — Social App
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A full-stack social media app with posts, DMs, stories, reels, servers, and real-time notifications.
 
-## Run & Operate
+## Project Structure
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
-- `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+```
+frontend/   → React + Vite app → deploy to Netlify
+backend/    → Express API server → deploy to Render
+```
+
+## Run & Operate (Replit)
+
+- `frontend` workflow — runs the Vite dev server
+- `backend` workflow — runs the Express API server
+
+## Deploying to GitHub → Netlify + Render
+
+### 1. Connect GitHub to Replit
+- Go to Replit → Version Control → Connect to GitHub repo
+- Push changes: all commits auto-sync
+
+### 2. Deploy Backend to Render
+- Create a new **Web Service** on render.com
+- Point to your GitHub repo, **Root Directory**: `backend`
+- Build Command: `npm install && npm run build`
+- Start Command: `npm start`
+- Environment Variables (set in Render dashboard):
+  - `DATABASE_URL` — your PostgreSQL connection string
+  - `SESSION_SECRET` — a long random string
+  - `NODE_ENV=production`
+  - `PORT=3000` (Render sets this automatically)
+  - Optional: `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_EMAIL`
+- Run DB migrations: `npm run db:push` (in Render shell or one-off job)
+
+### 3. Deploy Frontend to Netlify
+- Create a **New Site** on netlify.com from GitHub
+- **Base directory**: `frontend`
+- **Build command**: `npm install && npm run build`
+- **Publish directory**: `frontend/dist`
+- Environment Variables (set in Netlify):
+  - `VITE_API_URL` — your Render backend URL (e.g. `https://rizz-api.onrender.com`)
 
 ## Stack
 
-- pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
-- DB: PostgreSQL + Drizzle ORM
-- Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
-- Build: esbuild (CJS bundle)
+- Frontend: React 18, Vite, TailwindCSS, TanStack Query, Wouter
+- Backend: Node.js 24, Express 5, Drizzle ORM, PostgreSQL
+- Auth: Session-based (express-session + bcrypt)
+- Real-time: SSE (Server-Sent Events)
+- Push: Web Push (VAPID)
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
-
-## Architecture decisions
-
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
-
-## Product
-
-_Describe the high-level user-facing capabilities of this app once they exist._
+- `frontend/src/lib/api-client.ts` — all API hooks and types
+- `frontend/src/hooks/use-auth.ts` — auth state
+- `backend/src/schema.ts` — database schema (source of truth)
+- `backend/src/routes/` — all API route handlers
+- `backend/drizzle.config.ts` — Drizzle ORM config
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- Deploy frontend to Netlify, backend to Render
+- Connect GitHub to Replit for pushing changes
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
-
-## Pointers
-
-- See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details
+- After changing DB schema, run `npm run db:push` in the backend
+- The frontend uses `VITE_API_URL` env var for the backend URL in production
+- In dev, Vite proxies `/api` to `localhost:3000`
+- Session cookies use `sameSite: "none"` + `secure: true` in production — both frontend and backend must be on HTTPS
