@@ -29,7 +29,11 @@ app.use(
   }),
 );
 
-app.use(cors({ origin: true, credentials: true }));
+const allowedOrigins = process.env["FRONTEND_URL"]
+  ? [process.env["FRONTEND_URL"], "http://localhost:5173"]
+  : true;
+
+app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(cookieParser(process.env["SESSION_SECRET"] ?? "rizz-secret-2024"));
 app.use(
   session({
