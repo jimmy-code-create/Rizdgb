@@ -18,7 +18,7 @@ if (Number.isNaN(port) || port <= 0) {
 
 try {
   logger.info("Running database migrations...");
-  execSync("npx drizzle-kit push", {
+  execSync("npx drizzle-kit push --force", {
     stdio: "inherit",
     env: { ...process.env },
   });
