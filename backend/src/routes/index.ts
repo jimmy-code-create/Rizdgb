@@ -42,19 +42,15 @@ router.use("/push", pushRouter);
 router.use("/admin", adminRouter);
 router.use(discoverRouter);
 
-// Add member to group
 router.post("/groups/:id/members", requireAuth, async (req, res) => {
   const groupId = Number(req.params["id"]);
   const { userId } = req.body as { userId: string };
   if (!userId) { res.status(400).json({ error: "userId required" }); return; }
-  const existing = await db.query.groupMembersTable.findFirst({
-    where: and(eq(groupMembersTable.groupId, groupId), eq(groupMembersTable.userId, userId)),
-  });
+  const existing = await db.query.groupMembersTable.findFirst({ where: and(eq(groupMembersTable.groupId, groupId), eq(groupMembersTable.userId, userId)) });
   if (!existing) await db.insert(groupMembersTable).values({ groupId, userId });
   res.json({ ok: true });
 });
 
-// Delete group message
 router.delete("/groups/:id/messages/:msgId", requireAuth, async (req, res) => {
   const msgId = Number(req.params["msgId"]);
   const userId = req.session!.userId!;
@@ -65,19 +61,16 @@ router.delete("/groups/:id/messages/:msgId", requireAuth, async (req, res) => {
   res.json({ ok: true });
 });
 
-// Mark single notification as read
 router.post("/notifications/:id/read", requireAuth, async (req, res) => {
   await db.update(notificationsTable).set({ isRead: true }).where(eq(notificationsTable.id, Number(req.params["id"])));
   res.json({ ok: true });
 });
 
-// Delete single notification
 router.delete("/notifications/:id", requireAuth, async (req, res) => {
   await db.delete(notificationsTable).where(eq(notificationsTable.id, Number(req.params["id"])));
   res.json({ ok: true });
 });
 
-// Delete reel
 router.delete("/reels/:reelId", requireAuth, async (req, res) => {
   const reelId = Number(req.params["reelId"]);
   const userId = req.session!.userId!;
@@ -89,7 +82,6 @@ router.delete("/reels/:reelId", requireAuth, async (req, res) => {
   res.json({ ok: true });
 });
 
-// Report user
 router.post("/users/:userId/report", requireAuth, async (_req, res) => {
   res.json({ ok: true, message: "Report received" });
 });
