@@ -36,7 +36,7 @@ router.delete("/messages/:msgId", requireAuth, async (req, res) => {
   const msg = await db.query.channelMessagesTable.findFirst({ where: eq(channelMessagesTable.id, msgId) });
   if (!msg) { res.status(404).json({ error: "Not found" }); return; }
   if (msg.senderId !== req.session!.userId!) { res.status(403).json({ error: "Forbidden" }); return; }
+export default router;
   await db.delete(channelMessagesTable).where(eq(channelMessagesTable.id, msgId));
   res.json({ ok: true });
 });
-export default router;
