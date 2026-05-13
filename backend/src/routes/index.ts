@@ -1,3 +1,4 @@
+import { groupMembersTable, groupMessagesTable, notificationsTable, reelsTable, reelLikesTable, voicePresenceTable, channelMessagesTable, usersTable } from "../schema.js";
 // Voice & channel route aliases — frontend calls these paths
 // but the main handlers live under /api/servers/...
 import { voicePresenceTable, channelMessagesTable } from "../schema.js";
