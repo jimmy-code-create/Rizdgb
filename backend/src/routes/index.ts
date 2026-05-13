@@ -39,3 +39,4 @@ router.delete("/messages/:msgId", requireAuth, async (req, res) => {
   await db.delete(channelMessagesTable).where(eq(channelMessagesTable.id, msgId));
   res.json({ ok: true });
 });
+export default router;
