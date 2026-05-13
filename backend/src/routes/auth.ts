@@ -35,6 +35,13 @@ function serializeUser(u: typeof usersTable.$inferSelect, extra?: { isFollowing?
   };
 }
 
+router.get("/me", async (req, res) => {
+  if (!req.session?.userId) { res.status(401).json({ error: "Not authenticated" }); return; }
+  const user = await db.query.usersTable.findFirst({ where: eq(usersTable.id, req.session.userId) });
+  if (!user) { res.status(401).json({ error: "User not found" }); return; }
+  res.json(serializeUser(user));
+});
+
 router.post("/register", async (req, res) => {
   const { username, email, password, displayName } = req.body as { username: string; email: string; password: string; displayName?: string };
   if (!username || !email || !password) {
